@@ -1,0 +1,4 @@
+<launch>
+  <node name="position" pkg="pilot_v2" type="key_main.py" output="screen" launch-prefix="xterm -e" />
+</launch>
+
