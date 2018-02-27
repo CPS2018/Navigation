@@ -138,24 +138,26 @@ def run_tests():
                 print "Step size set"
                 time.sleep(0.5)
 
-                count = 0
                 pose_rel2[0] = float(args[1])
                 pose_rel2[1] = float(args[2])
                 pose_rel2[2] = float(args[3])
                 go.set_orient(pose_rel2)
 
+
                 while distance > 0.5:
-                    #[new_x,new_y]=go.detect_th1(pose_rel[0] + dx,pose_rel[1] + dy, start_pose)
-                    #new_alt = go.holdalt(des_pose.pose.position.z)
+                    alt_correction = pose_rel[2]
+                    if (des_pose.pose.position.z-pose_rel[2]) < 0.2:
+                        alt_correction = pose_rel[2] + go.obstacle_height()
+
                     pose_rel[0] = pose_rel[0] + dx
                     pose_rel[1] = pose_rel[1] + dy
-                    pose_rel[2] = pose_rel[2] + dz
+                    pose_rel[2] = alt_correction + dz
                     go.set_msg(pose_rel)
                     time.sleep(0.001)
                     distance = go.dist2wp(des_pose)
-                    print go.dist2wp(des_pose)
+
                 print "Destination reached"
-                #reset(pose_rel)
+
 
         usage()
         # Dont waste cpu!

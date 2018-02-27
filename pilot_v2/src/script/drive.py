@@ -10,15 +10,17 @@ import Sensor
 import time
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import LaserScan
+from decimal import *
 
-detect_data = LaserScan()
-height_data = LaserScan()
+
 class drive():
     # Init
     def __init__(self, lock):
         self._lock = lock
         self._curr_pose = PoseStamped()
         self.sense = Sensor.sensor()
+        self.detect_data = LaserScan()
+        self.height_data = LaserScan()
 
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self._curr_pose_callback)
         self._pose_pub = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=10)
@@ -48,6 +50,8 @@ class drive():
             self._pose_msg.pose.position.x = arg[0]
             self._pose_msg.pose.position.y = arg[1]
             self._pose_msg.pose.position.z = arg[2]
+            self._pose_msg.pose.orientation.x = 0
+            self._pose_msg.pose.orientation.y = 0
             self._lock.release()
 
     # Set orientation/heading
@@ -83,14 +87,16 @@ class drive():
                 print "Orientation set"
                 self.orientation=True
 
-    # Hold altitude function
-    def holdalt(self, des_z):
-        temp_height = des_z
+
+    # Obstacle height
+    def obstacle_height(self):
+        curr_height = self._curr_pose.pose.position.z
         height_data = self.sense.get_height()
+        diff = 0.0
         if height_data:
             if (height_data.ranges[1]>0.0) and (height_data.ranges[1]<40.0):
-                des_z = des_z + ((des_z - height_data.ranges[1]))
-        return des_z
+                diff = curr_height - height_data.ranges[1]
+        return diff
 
     # Sensor detection function #1
     def detect_th(self, des_x, des_y): #Return 0 if ostacle is detected
